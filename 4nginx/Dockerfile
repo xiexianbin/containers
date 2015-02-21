@@ -18,7 +18,7 @@ RUN apt-get -y install nginx
 
 ONBUILD ADD . /usr/share/nginx/
 
-EXPOSE 8083
+EXPOSE 80
 
 ENTRYPOINT ["/usr/sbin/nginx"]
 CMD ["-g","daemon off;"]
