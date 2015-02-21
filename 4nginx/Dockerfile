@@ -15,13 +15,17 @@ RUN apt-get update
 
 # install 
 RUN apt-get -y install nginx 
+#RUN ["apt-get", "-y", "install", "nginx"]
 
-ONBUILD ADD . /usr/share/nginx/
+ADD ./project01/ /usr/share/nginx/project01/
 
 EXPOSE 80
 
-ENTRYPOINT ["/usr/sbin/nginx"]
-CMD ["-g","daemon off;"]
+ENTRYPOINT ["/bin/bash"] 
+
+# ENTRYPOINT ["/usr/sbin/nginx"]
+# CMD ["-g","daemon off;"]
+# CMD ["-h"]
 
 
 
