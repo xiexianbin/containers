@@ -1,0 +1,25 @@
+{
+    "gh_server": "GH_SERVER",
+    "temp": "/srv/sources",
+    "public_repo": IS_PUBLIC_REPO,
+    "scripts": {
+      "#default": {
+        "build": "./scripts/build.sh",
+        "publish": "./scripts/publish.sh"
+      }
+    },
+    "secret": "WEB_HOOK_SECRET",
+    "email": {
+        "isActivated": EMAIL_IS_ACTIVATED,
+        "user": "EMAIL_USER",
+        "password": "EMAIL_PASSWORD",
+        "host": "EMAIL_HOST",
+        "port": EMAIL_PORT,
+        "tls": EMAIL_TLS,
+        "ssl": EMAIL_SSL
+    },
+    "notify_email": "NOTIFY_EMAIL",
+    "accounts": [
+        "GITHUB_ACCOUNTS"
+    ]
+}
