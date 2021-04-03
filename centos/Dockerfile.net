@@ -1,0 +1,9 @@
+# Create by Xie Xianbin, For centos 
+# v 1.0.0
+
+# base image 
+FROM centos:7
+
+RUN yum clean all \
+    && yum -y install iperf iproute net-tools tcping tcpdump bridge-utils \
+    && yum clean all
