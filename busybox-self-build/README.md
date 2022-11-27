@@ -1,5 +1,5 @@
 # busybox
 
 ```
-docker build -t xiexianbin/busybox:1 .
+docker build -t xiexianbin/bk-cmdb:1 .
 ```
