@@ -1,6 +1,0 @@
-
-docker build -t moxun/4nginx06 .
-
-docker run -i -t -d -p 8087:80 --name="4nginx06" moxun/4nginx06
-
-
