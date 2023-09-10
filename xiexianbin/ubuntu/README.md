@@ -1,14 +1,9 @@
-# centos
+# ubuntu
 
 ```
-docker build -t xiexianbin/ubuntu:xenial-20180112.1 .
-```
+make docker
 
-```
-docker tag xiexianbin/ubuntu:xenial-20180112.1 xiexianbin/ubuntu:latest
-```
+docker push xiexianbin/ubuntu:20.04
 
-```
-docker push xiexianbin/ubuntu:xenial-20180112.1
-docker push xiexianbin/ubuntu:latest
+docker run -it -d --privileged --hostname dev --name dev xiexianbin/ubuntu:20.04 /lib/systemd/systemd
 ```
