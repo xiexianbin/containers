@@ -1,6 +1,6 @@
 {
   "log": {
-    "loglevel": "info",
+    "loglevel": "debug",
     "access": "/var/log/access.log",
     "error": "/var/log/error.log"
   },
@@ -17,11 +17,15 @@
         ]
       },
       "streamSettings": {
-        "network": "ws",
-        "wsSettings": {
-          "path": "/websocket"
-        }
-      }
+        "network": "ws"
+      },
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+            "http",
+            "tls"
+        ]
+    }
     }
   ],
   "outbounds": [

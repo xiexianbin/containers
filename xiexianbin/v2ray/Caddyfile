@@ -1,16 +1,21 @@
-:80 {
-    redir https://
+{
+    auto_https off
 }
 
-:443 {
-    tls /root/cert.crt /root/cert.key
+# https://zelikk.blogspot.com/2022/02/233-websocket-tls-caddy-v2-v2ray-reverseproxy-handlepath-headerup.html
+:8888 {
+    # tls /root/cert.crt /root/cert.key
 
-    @v2ray_websocket {
-        path /websocket
-        header Connection Upgrade
-        header Upgrade websocket
+    encode gzip
+
+    handle_path /websocket {
+        # uri path_regexp /.* /
+        reverse_proxy localhost:8080
     }
-    reverse_proxy @v2ray_websocket localhost:8080
-
-    respond "Hello, world!"
+    handle {
+        reverse_proxy https://httpbin.org {
+            trusted_proxies 0.0.0.0/0
+            header_up Host {upstream_hostport}
+        }
+    }
 }

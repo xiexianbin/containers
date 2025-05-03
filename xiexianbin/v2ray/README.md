@@ -13,21 +13,22 @@ This Docker image provides a V2Ray service with Caddy as a reverse proxy for Web
 
 The service uses the following ports:
 
-- 80: HTTP (redirects to HTTPS)
-- 443: HTTPS with Caddy
+- 8888: HTTP or HTTPS with Caddy
 
 ## Usage
 
 1. Build the image:
 ```bash
-docker build -t xiexianbin/v2ray:1 .
+make docker
+# docker build -t xiexianbin/v2ray:1 .
 ```
 
 2. Run the container:
 ```bash
-docker run -d -p 80:80 -p 443:443 \
+docker run -d -p 8888:8888 \
   -e V2RAY_UUID=`uuid` \
-  -e SELF_CERT="true" \
+  -e SELF_CERT="false" \
+  -e DOMAIN="xxx.com" \
   --name v2ray \
   xiexianbin/v2ray:1
 ```

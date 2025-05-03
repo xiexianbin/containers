@@ -38,7 +38,7 @@ ADD entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
 
 # Expose ports
-EXPOSE 80 443
+EXPOSE 8888
 
 # Start both services
 ENTRYPOINT ["/entrypoint.sh"]
