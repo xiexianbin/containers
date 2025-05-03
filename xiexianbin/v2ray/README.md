@@ -26,7 +26,7 @@ docker build -t xiexianbin/v2ray:1 .
 2. Run the container:
 ```bash
 docker run -d -p 80:80 -p 443:443 \
-  -e V2RAY_UUID="f4c87b5e-2754-11f0-ad6b-63aec9ff10ec" \
+  -e V2RAY_UUID=`uuid` \
   -e SELF_CERT="true" \
   --name v2ray \
   xiexianbin/v2ray:1

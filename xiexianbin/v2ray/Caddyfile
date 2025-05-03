@@ -11,4 +11,6 @@
         header Upgrade websocket
     }
     reverse_proxy @v2ray_websocket localhost:8080
+
+    respond "Hello, world!"
 }
