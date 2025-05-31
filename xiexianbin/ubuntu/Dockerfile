@@ -1,14 +1,14 @@
 FROM ubuntu:24.04
 
-RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/ubuntu.sources && \
-  sed -i 's/security.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/ubuntu.sources
-
-RUN apt-get update && \
+RUN sed -i 's/archive.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list.d/ubuntu.sources && \
+  sed -i 's/security.ubuntu.com/mirrors.aliyun.com/g' /etc/apt/sources.list.d/ubuntu.sources && \
+  apt-get update && \
   export DEBIAN_FRONTEND=noninteractive && \
   apt-get install -y \
     bash-completion \
     ca-certificates \
     curl \
+    dnsutils \
     git \
     vim \
     wget \
@@ -17,6 +17,7 @@ RUN apt-get update && \
     systemd \
     net-tools \
     iproute2 \
+    iputils-ping \
     tzdata \
     openssh-server \
     openssl \
