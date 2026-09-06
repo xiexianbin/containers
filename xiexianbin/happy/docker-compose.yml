@@ -1,0 +1,27 @@
+services:
+  happy:
+    image: ghcr.io/xiexianbin/happy:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: happy
+    restart: unless-stopped
+    ports:
+      - "3005:3005"
+    volumes:
+      - happy-data:/data
+    environment:
+      - PORT=3005
+      # - HAPPY_SERVER_URL=http://your-server-ip:3005
+      # - HANDY_MASTER_SECRET=your-32-byte-hex-secret
+      # - DATABASE_URL=postgresql://user:pass@postgres:5432/happy
+      # - REDIS_URL=redis://redis:6379
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:3005/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+volumes:
+  happy-data:
