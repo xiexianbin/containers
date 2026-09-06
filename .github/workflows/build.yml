@@ -1,0 +1,165 @@
+name: build-and-push
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "xiexianbin/**"
+      - ".github/workflows/*.yml"
+  workflow_dispatch:
+    inputs:
+      images:
+        description: "Images to build (JSON array, empty = all). e.g. [\"node\",\"v2ray\"]"
+        required: false
+        default: "[]"
+      force_all:
+        description: "Build all images, ignoring change detection"
+        required: false
+        default: "false"
+
+env:
+  REGISTRY: ghcr.io
+  OWNER: ${{ github.repository_owner }}
+
+jobs:
+  changes:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      has_targets: ${{ steps.set-matrix.outputs.has_targets }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect changed images
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            workflow:
+              - ".github/workflows/*.yml"
+            node:
+              - "xiexianbin/node/**"
+            openresty:
+              - "xiexianbin/openresty/**"
+            openresty-oss-proxy:
+              - "xiexianbin/openresty-oss-proxy/**"
+            ubuntu:
+              - "xiexianbin/ubuntu/**"
+            v2ray:
+              - "xiexianbin/v2ray/**"
+
+      - name: Generate build matrix
+        id: set-matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          FILTER_CHANGES: ${{ steps.filter.outputs.changes }}
+          WORKFLOW_CHANGED: ${{ steps.filter.outputs.workflow }}
+          INPUT_IMAGES: ${{ github.event.inputs.images }}
+          INPUT_FORCE_ALL: ${{ github.event.inputs.force_all }}
+        run: |
+          python3 - << 'EOF'
+          import json, os
+
+          all_images = [
+              {"name": "node", "context": "xiexianbin/node", "tags": "24"},
+              {"name": "openresty", "context": "xiexianbin/openresty", "tags": "1.25.3.2-3-noble"},
+              {"name": "openresty-oss-proxy", "context": "xiexianbin/openresty-oss-proxy", "tags": "1"},
+              {"name": "ubuntu", "context": "xiexianbin/ubuntu", "tags": "24.04"},
+              {"name": "v2ray", "context": "xiexianbin/v2ray", "tags": "5.31"},
+          ]
+
+          event_name = os.environ.get("EVENT_NAME", "")
+          workflow_changed = os.environ.get("WORKFLOW_CHANGED", "") == "true"
+          force_all = os.environ.get("INPUT_FORCE_ALL", "") == "true"
+          input_images_raw = os.environ.get("INPUT_IMAGES", "")
+
+          selected_names = set()
+
+          if event_name == "workflow_dispatch":
+              if force_all or not input_images_raw or input_images_raw.strip() in ("", "[]"):
+                  selected_names = {img["name"] for img in all_images}
+              else:
+                  try:
+                      parsed = json.loads(input_images_raw)
+                      if isinstance(parsed, list):
+                          selected_names = set(parsed)
+                      else:
+                          selected_names = {str(parsed)}
+                  except Exception:
+                      selected_names = {x.strip() for x in input_images_raw.split(",") if x.strip()}
+          elif event_name == "push":
+              if workflow_changed:
+                  selected_names = {img["name"] for img in all_images}
+              else:
+                  try:
+                      changes = json.loads(os.environ.get("FILTER_CHANGES", "[]"))
+                      selected_names = set(changes)
+                  except Exception:
+                      selected_names = set()
+          else:
+              selected_names = {img["name"] for img in all_images}
+
+          matrix_include = [img for img in all_images if img["name"] in selected_names]
+          has_targets = len(matrix_include) > 0
+
+          matrix_output = json.dumps({"include": matrix_include})
+          print(f"Selected images: {[img['name'] for img in matrix_include]}")
+
+          github_output = os.environ.get("GITHUB_OUTPUT")
+          if github_output:
+              with open(github_output, "a") as f:
+                  f.write(f"matrix={matrix_output}\n")
+                  f.write(f"has_targets={'true' if has_targets else 'false'}\n")
+          EOF
+
+  build:
+    needs: changes
+    if: ${{ needs.changes.outputs.has_targets == 'true' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        run: |
+          owner=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
+          taglist="${{ matrix.tags }}"
+          echo "images<<EOF" >> "$GITHUB_OUTPUT"
+          for tag in $(echo "$taglist" | tr ',' ' '); do
+            echo "${{ env.REGISTRY }}/${owner}/${{ matrix.name }}:${tag}" >> "$GITHUB_OUTPUT"
+          done
+          if ! echo "$taglist" | tr ',' '\n' | grep -qx "latest"; then
+            echo "${{ env.REGISTRY }}/${owner}/${{ matrix.name }}:latest" >> "$GITHUB_OUTPUT"
+          fi
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          tags: ${{ steps.meta.outputs.images }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}

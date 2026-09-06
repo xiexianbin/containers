@@ -1,8 +1,0 @@
-UserKnownHostsFile=/dev/null
-StrictHostKeyChecking=no
-LogLevel=ERROR
-
-host github.com
-    hostname github.com
-    port 22
-    identityfile ~/.ssh/id_rsa
